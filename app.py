@@ -425,6 +425,11 @@ def health_check():
     return jsonify({"status": "ok", "message": "Server is running"}), 200
 
 
+# ПРИНУДИТЕЛЬНОЕ СОЗДАНИЕ ТАБЛИЦ ПРИ ЗАПУСКЕ
+with app.app_context():
+    db.create_all()
+    print("✅ База данных и таблицы созданы!")
+
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
