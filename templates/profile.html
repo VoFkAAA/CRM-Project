@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body class="light-theme">
+    <div class="theme-toggle">
+        <button id="themeSwitcher" class="theme-btn">🌙 Тёмная тема</button>
+    </div>
+
+    <div class="container">
+        <div class="form-container">
+            <div class="form-header">
+                <h1>Профиль</h1>
+                <button class="close-btn" onclick="window.location.href='/clients_page'">&times;</button>
+            </div>
+
+            <div class="error-message" id="errorMessage" style="display: none;"></div>
+            <div class="success-message" id="successMessage" style="display: none;"></div>
+
+            <form id="profileForm">
+                <div class="form-group">
+                    <label for="name">Имя *</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="surname">Фамилия *</label>
+                    <input type="text" id="surname" name="surname" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email *</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Телефон *</label>
+                    <input type="tel" id="phone" name="phone" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="birth_date">Дата рождения</label>
+                    <input type="date" id="birth_date" name="birth_date">
+                </div>
+
+                <div class="form-group">
+                    <label for="department">Подразделение</label>
+                    <select id="department" name="department">
+                        <option value="">Не выбрано</option>
+                        <option value="Администрация">Администрация</option>
+                        <option value="Бухгалтерия">Бухгалтерия</option>
+                        <option value="АХО">АХО</option>
+                        <option value="Закупки">Закупки</option>
+                        <option value="Продажи">Продажи</option>
+                        <option value="Производство">Производство</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Дата регистрации</label>
+                    <input type="text" id="register_date" readonly disabled>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" id="cancelBtn" class="btn-secondary">Отмена</button>
+                    <button type="submit" class="btn-primary">Сохранить</button>
+                </div>
+            </form>
+
+            <div class="logout-section">
+                <button id="logoutBtn" class="btn-danger">Выйти</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-left">
+            © My Own Project, 2026
+        </div>
+        <div class="footer-right">
+            <a href="#" id="privacyPolicyLink" class="footer-link">Политика конфиденциальности</a>
+            <a href="#" id="termsOfUseLink" class="footer-link">Условия использования</a>
+            <div class="contacts">
+                Тел.: 84952223???<br>
+                Эл. почта: unexistingtestmail@ya.ru
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const API_BASE = '';
+        const token = localStorage.getItem('access_token');
+        let userData = null;
+
+        if (!token) {
+            window.location.href = '/';
+        }
+
+        // Переключение темы
+        const themeSwitcher = document.getElementById('themeSwitcher');
+        let isDark = false;
+
+        themeSwitcher.addEventListener('click', () => {
+            isDark = !isDark;
+            document.body.className = isDark ? 'dark-theme' : 'light-theme';
+            themeSwitcher.textContent = isDark ? '☀️ Светлая тема' : '🌙 Тёмная тема';
+        });
+
+        // Загрузка данных пользователя
+        async function loadUserProfile() {
+            try {
+                const storedUser = localStorage.getItem('user');
+                if (storedUser) {
+                    userData = JSON.parse(storedUser);
+                    fillForm(userData);
+                }
+
+                // Дополнительно запрашиваем свежие данные с сервера
+                const response = await fetch(`${API_BASE}/update_profile`, {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success && data.data) {
+                        userData = data.data;
+                        fillForm(userData);
+                        localStorage.setItem('user', JSON.stringify(userData));
+                    }
+                }
+            } catch (err) {
+                console.error('Ошибка загрузки профиля:', err);
+            }
+        }
+
+        function fillForm(user) {
+            document.getElementById('name').value = user.name || '';
+            document.getElementById('surname').value = user.surname || '';
+            document.getElementById('email').value = user.email || '';
+            document.getElementById('phone').value = user.phone || '';
+            document.getElementById('birth_date').value = user.birth_date || '';
+            document.getElementById('department').value = user.department || '';
+            document.getElementById('register_date').value = user.register_date ? user.register_date.split('T')[0] : '';
+        }
+
+        // Сохранение профиля
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('name').value.trim();
+            const surname = document.getElementById('surname').value.trim();
+            const email = document.getElementById('email').value.trim();
+            let phone = document.getElementById('phone').value.replace(/\D/g, '');
+            const birth_date = document.getElementById('birth_date').value;
+            const department = document.getElementById('department').value;
+
+            const errorDiv = document.getElementById('errorMessage');
+            const successDiv = document.getElementById('successMessage');
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+
+            // Простая валидация
+            if (!name || name.length < 2) {
+                errorDiv.textContent = 'Имя должно содержать минимум 2 символа';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            if (!surname || surname.length < 1) {
+                errorDiv.textContent = 'Фамилия должна содержать минимум 1 символ';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            // БАГ: нет проверки на уникальность email и телефона (по требованиям бага)
+
+            const updateData = { name, surname, email, phone };
+            if (birth_date) updateData.birth_date = birth_date;
+            if (department) updateData.department = department;
+
+            try {
+                const response = await fetch(`${API_BASE}/update_profile`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(updateData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    successDiv.textContent = 'Профиль успешно обновлён!';
+                    successDiv.style.display = 'block';
+                    if (data.data) {
+                        localStorage.setItem('user', JSON.stringify(data.data));
+                    }
+                    setTimeout(() => {
+                        successDiv.style.display = 'none';
+                    }, 3000);
+                } else {
+                    errorDiv.textContent = data.message || 'Ошибка обновления';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (err) {
+                errorDiv.textContent = 'Ошибка сети';
+                errorDiv.style.display = 'block';
+            }
+        });
+
+        // Отмена
+        document.getElementById('cancelBtn').addEventListener('click', () => {
+            window.location.href = '/clients_page';
+        });
+
+        // Выход
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            try {
+                await fetch(`${API_BASE}/logout`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+            } catch (err) { }
+
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('user');
+            window.location.href = '/';
+        });
+
+        // Футер ссылки
+        document.getElementById('privacyPolicyLink').onclick = (e) => {
+            e.preventDefault();
+            alert('Политика конфиденциальности\n\nLorem Ipsum...');
+        };
+        document.getElementById('termsOfUseLink').onclick = (e) => {
+            e.preventDefault();
+            alert('Условия использования\n\nLorem Ipsum...');
+        };
+
+        // Загрузка
+        loadUserProfile();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Главная - Мои клиенты</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body class="light-theme">
+    <div class="theme-toggle">
+        <button id="themeSwitcher" class="theme-btn">🌙 Тёмная тема</button>
+    </div>
+
+    <!-- БАГ: Кнопка переключения темы должна быть в верхнем правом углу, но будет в нижнем левом (по багу) -->
+
+    <div class="main-container">
+        <header class="main-header">
+            <h1>Мои клиенты</h1>
+            <button id="profileBtn" class="profile-btn">👤 Профиль</button>
+        </header>
+
+        <div class="clients-controls">
+            <button id="createClientBtn" class="btn-primary">+ Создать клиента</button>
+        </div>
+
+        <div class="error-message" id="errorMessage" style="display: none;"></div>
+
+        <div class="clients-table-container">
+            <table class="clients-table" id="clientsTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Название</th>
+                        <th>Email</th>
+                        <th>Телефон</th>
+                        <th>Статус</th>
+                        <th>Действия</th>
+                    </tr>
+                </thead>
+                <tbody id="clientsTableBody">
+                    <tr>
+                        <td colspan="6" class="loading">Загрузка...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-left">
+            © My Own Project, 2026
+        </div>
+        <div class="footer-right">
+            <a href="#" id="privacyPolicyLink" class="footer-link">Политика конфиденциальности</a>
+            <a href="#" id="termsOfUseLink" class="footer-link">Условия использования</a>
+            <div class="contacts">
+                Тел.: 84952223???<br>
+                Эл. почта: unexistingtestmail@ya.ru
+            </div>
+        </div>
+    </footer>
+
+    <!-- Модальное окно для деталей клиента -->
+    <div id="clientModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Информация о клиенте</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div id="clientDetails"></div>
+        </div>
+    </div>
+
+    <!-- Модальное окно подтверждения удаления -->
+    <div id="deleteModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <p>Вы действительно хотите удалить клиента?</p>
+            <div class="modal-buttons">
+                <button id="confirmDeleteBtn" class="btn-danger">Да</button>
+                <button id="cancelDeleteBtn" class="btn-secondary">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '';
+        let currentUserId = null;
+        let clientsList = [];
+        let clientToDelete = null;
+
+        // Проверка авторизации
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            window.location.href = '/';
+        }
+
+        // Переключение темы
+        const themeSwitcher = document.getElementById('themeSwitcher');
+        let isDark = false;
+
+        themeSwitcher.addEventListener('click', () => {
+            isDark = !isDark;
+            document.body.className = isDark ? 'dark-theme' : 'light-theme';
+            themeSwitcher.textContent = isDark ? '☀️ Светлая тема' : '🌙 Тёмная тема';
+        });
+
+        // Загрузка списка клиентов
+        async function loadClients() {
+            try {
+                const response = await fetch(`${API_BASE}/create_client`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                // TODO: Временная заглушка, пока нет реального эндпоинта /clients
+                // После реализации эндпоинта заменить на нормальный запрос
+
+                // Пока показываем демо-данные
+                const tbody = document.getElementById('clientsTableBody');
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align: center;">⚠️ Эндпоинт /get_clients в разработке<br>
+                        <small>Скоро здесь будет список клиентов</small></td>
+                    </tr>
+                `;
+            } catch (err) {
+                console.error('Ошибка загрузки клиентов:', err);
+            }
+        }
+
+        // Профиль
+        document.getElementById('profileBtn').addEventListener('click', () => {
+            window.location.href = '/profile_page';
+        });
+
+        // Создать клиента
+        document.getElementById('createClientBtn').addEventListener('click', () => {
+            window.location.href = '/create_client_page';
+        });
+
+        // Модальные окна
+        const modal = document.getElementById('clientModal');
+        const deleteModal = document.getElementById('deleteModal');
+        const closeBtns = document.querySelectorAll('.close');
+
+        closeBtns.forEach(btn => {
+            btn.onclick = () => {
+                modal.style.display = 'none';
+                deleteModal.style.display = 'none';
+            };
+        });
+
+        window.onclick = (e) => {
+            if (e.target === modal) modal.style.display = 'none';
+            if (e.target === deleteModal) deleteModal.style.display = 'none';
+        };
+
+        document.getElementById('cancelDeleteBtn')?.addEventListener('click', () => {
+            deleteModal.style.display = 'none';
+            clientToDelete = null;
+        });
+
+        // Футер ссылки
+        document.getElementById('privacyPolicyLink').onclick = (e) => {
+            e.preventDefault();
+            alert('Политика конфиденциальности\n\nLorem Ipsum...');
+        };
+        document.getElementById('termsOfUseLink').onclick = (e) => {
+            e.preventDefault();
+            alert('Условия использования\n\nLorem Ipsum...');
+        };
+
+        // Загрузка данных
+        loadClients();
+
+        // Выход (добавим кнопку позже)
+        window.addEventListener('beforeunload', () => { });
+    </script>
+</body>
+
+</html>

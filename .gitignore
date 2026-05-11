@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+
+# Виртуальное окружение
+venv/
+env/
+ENV/
+
+# База данных (SQLite, если переключишься)
+*.db
+*.sqlite
+
+# Логи
+*.log
+
+# Переменные окружения с секретами
+.env
+
+# DBeaverproject*
+
+# IDE (если пользуешься VS Code, PyCharm)
+.vscode/
+.idea/
+
+# Файлы OS (например, .DS_Store на Mac)
+.DS_Store
+Thumbs.db
+
+# Файлы с локальной конфигурацией
+*.local

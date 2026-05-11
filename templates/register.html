@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body class="light-theme">
+    <div class="theme-toggle">
+        <button id="themeSwitcher" class="theme-btn">🌙 Тёмная тема</button>
+    </div>
+
+    <div class="container">
+        <div class="form-container">
+            <div class="form-header">
+                <h1>Регистрация</h1>
+                <button class="close-btn" onclick="window.location.href='/'">&times;</button>
+            </div>
+
+            <div class="error-message" id="errorMessage" style="display: none;"></div>
+            <div class="success-message" id="successMessage" style="display: none;"></div>
+
+            <form id="registerForm">
+                <div class="form-group">
+                    <label for="name">Имя *</label>
+                    <input type="text" id="name" name="name" placeholder="Иван" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="surname">Фамилия *</label>
+                    <input type="text" id="surname" name="surname" placeholder="Иванов" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email *</label>
+                    <input type="email" id="email" name="email" placeholder="user@mail.ru" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Телефон *</label>
+                    <input type="tel" id="phone" name="phone" placeholder="(XXX) XXX-XX-XX" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Пароль *</label>
+                    <input type="password" id="password" name="password" placeholder="Введите пароль" required>
+                    <small class="hint">Минимум 6 символов, буквы, цифры, спецсимволы</small>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" id="cancelBtn" class="btn-secondary">Отмена</button>
+                    <button type="submit" class="btn-primary">ОК</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="footer-left">
+            © My Own Project, 2026
+        </div>
+        <div class="footer-right">
+            <a href="#" id="privacyPolicyLink" class="footer-link">Политика конфиденциальности</a>
+            <a href="#" id="termsOfUseLink" class="footer-link">Условия использования</a>
+            <div class="contacts">
+                Тел.: 84952223???<br>
+                Эл. почта: unexistingtestmail@ya.ru
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const API_BASE = '';
+
+        // Переключение темы
+        const themeSwitcher = document.getElementById('themeSwitcher');
+        let isDark = false;
+
+        themeSwitcher.addEventListener('click', () => {
+            isDark = !isDark;
+            document.body.className = isDark ? 'dark-theme' : 'light-theme';
+            themeSwitcher.textContent = isDark ? '☀️ Светлая тема' : '🌙 Тёмная тема';
+        });
+
+        // Форматирование телефона (маска ввода)
+        const phoneInput = document.getElementById('phone');
+        phoneInput.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 10) value = value.slice(0, 10);
+
+            if (value.length >= 3) {
+                let formatted = `(${value.slice(0, 3)}`;
+                if (value.length >= 4) formatted += `) ${value.slice(3, 6)}`;
+                if (value.length >= 7) formatted += `-${value.slice(6, 8)}`;
+                if (value.length >= 9) formatted += `-${value.slice(8, 10)}`;
+                e.target.value = formatted;
+            } else if (value.length > 0) {
+                e.target.value = `(${value}`;
+            }
+        });
+
+        // Форма регистрации
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('name').value.trim();
+            const surname = document.getElementById('surname').value.trim();
+            const email = document.getElementById('email').value.trim();
+            let phone = document.getElementById('phone').value.replace(/\D/g, '');
+            const password = document.getElementById('password').value;
+
+            const errorDiv = document.getElementById('errorMessage');
+            const successDiv = document.getElementById('successMessage');
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+
+            // Валидация на фронте (быстрая)
+            if (!/^[А-Яа-яA-Za-z\s-]{2,15}$/.test(name)) {
+                errorDiv.textContent = 'Введите корректное имя (2-15 символов, только буквы, пробел, дефис)';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            if (!/^[А-Яа-яA-Za-z-]{1,40}$/.test(surname)) {
+                errorDiv.textContent = 'Введите корректную фамилию (1-40 символов, только буквы и дефис)';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            if (phone.length !== 10) {
+                errorDiv.textContent = 'Введите корректный телефон (10 цифр)';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, surname, email, phone, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    successDiv.textContent = 'Регистрация успешна! Перенаправление на вход...';
+                    successDiv.style.display = 'block';
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 2000);
+                } else {
+                    // Заменяем переносы строк на HTML-теги <br>
+                    let errorMessage = data.message || 'Ошибка регистрации';
+                    errorMessage = errorMessage.replace(/\n/g, '<br>');
+                    errorDiv.innerHTML = errorMessage;
+                    errorDiv.style.display = 'block';
+                }
+            } catch (err) {
+                errorDiv.textContent = 'Ошибка сети';
+                errorDiv.style.display = 'block';
+            }
+        });
+
+        // Кнопка Отмена
+        document.getElementById('cancelBtn').addEventListener('click', () => {
+            window.location.href = '/';
+        });
+
+        // Футер ссылки
+        document.getElementById('privacyPolicyLink').onclick = (e) => {
+            e.preventDefault();
+            alert('Политика конфиденциальности\n\nLorem Ipsum...');
+        };
+        document.getElementById('termsOfUseLink').onclick = (e) => {
+            e.preventDefault();
+            alert('Условия использования\n\nLorem Ipsum...');
+        };
+    </script>
+</body>
+
+</html>
