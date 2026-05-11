@@ -106,26 +106,80 @@
             themeSwitcher.textContent = isDark ? '☀️ Светлая тема' : '🌙 Тёмная тема';
         });
 
+        // Функция для защиты от XSS (экранирование спецсимволов)
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
         // Загрузка списка клиентов
         async function loadClients() {
             try {
-                const response = await fetch(`${API_BASE}/create_client`, {
+                const response = await fetch(`${API_BASE}/clients`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                // TODO: Временная заглушка, пока нет реального эндпоинта /clients
-                // После реализации эндпоинта заменить на нормальный запрос
 
-                // Пока показываем демо-данные
-                const tbody = document.getElementById('clientsTableBody');
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="6" style="text-align: center;">⚠️ Эндпоинт /get_clients в разработке<br>
-                        <small>Скоро здесь будет список клиентов</small></td>
-                    </tr>
-                `;
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (data.success && data.data) {
+                    const clients = data.data;
+                    const tbody = document.getElementById('clientsTableBody');
+
+                    if (clients.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="6" class="loading">Нет клиентов. Создайте первого!</td></tr>`;
+                        return;
+                    }
+
+                    tbody.innerHTML = clients.map(client => `
+                <tr>
+                    <td>${client.client_id}</td>
+                    <td>${escapeHtml(client.client_name)}</td>
+                    <td>${escapeHtml(client.email)}</td>
+                    <td>${escapeHtml(client.phone)}</td>
+                    <td>${client.status || 'Active'}</td>
+                    <td>
+                        <button class="btn-edit" data-id="${client.client_id}">✏️</button>
+                        <button class="btn-delete" data-id="${client.client_id}">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
+
+                    // Добавляем обработчики на кнопки (потом реализуем)
+                    document.querySelectorAll('.btn-edit').forEach(btn => {
+                        btn.addEventListener('click', () => editClient(btn.dataset.id));
+                    });
+                    document.querySelectorAll('.btn-delete').forEach(btn => {
+                        btn.addEventListener('click', () => deleteClient(btn.dataset.id));
+                    });
+                } else {
+                    throw new Error(data.message || 'Ошибка загрузки');
+                }
             } catch (err) {
                 console.error('Ошибка загрузки клиентов:', err);
+                const tbody = document.getElementById('clientsTableBody');
+                tbody.innerHTML = `<tr><td colspan="6" class="loading">❌ Ошибка загрузки клиентов</td></tr>`;
             }
+        }
+
+        // Редактирование клиента (временная заглушка)
+        function editClient(id) {
+            console.log('Редактирование клиента:', id);
+            alert(`Редактирование клиента ${id} будет доступно позже`);
+        }
+
+        // Удаление клиента (временная заглушка)
+        function deleteClient(id) {
+            console.log('Удаление клиента:', id);
+            alert(`Удаление клиента ${id} будет доступно позже`);
         }
 
         // Профиль
@@ -163,11 +217,11 @@
         // Футер ссылки
         document.getElementById('privacyPolicyLink').onclick = (e) => {
             e.preventDefault();
-            alert('Политика конфиденциальности\n\nLorem Ipsum...');
+            alert(`Политика конфиденциальности\n\n1. Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.\n\n2. Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32.\n\n3. There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable. If you are going to use a passage of Lorem Ipsum, you need to be sure there isn't anything embarrassing hidden in the middle of text. All the Lorem Ipsum generators on the Internet tend to repeat predefined chunks as necessary, making this the first true generator on the Internet. It uses a dictionary of over 200 Latin words, combined with a handful of model sentence structures, to generate Lorem Ipsum which looks reasonable. The generated Lorem Ipsum is therefore always free from repetition, injected humour, or non-characteristic words etc.`);
         };
         document.getElementById('termsOfUseLink').onclick = (e) => {
             e.preventDefault();
-            alert('Условия использования\n\nLorem Ipsum...');
+            alert(`Условия использования\n\n1. Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.\n\n2. Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32.\n\n3. There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable. If you are going to use a passage of Lorem Ipsum, you need to be sure there isn't anything embarrassing hidden in the middle of text. All the Lorem Ipsum generators on the Internet tend to repeat predefined chunks as necessary, making this the first true generator on the Internet. It uses a dictionary of over 200 Latin words, combined with a handful of model sentence structures, to generate Lorem Ipsum which looks reasonable. The generated Lorem Ipsum is therefore always free from repetition, injected humour, or non-characteristic words etc.`);
         };
 
         // Загрузка данных

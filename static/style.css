@@ -446,6 +446,32 @@ body.dark-theme .footer-right {
     margin-top: 8px;
 }
 
+/* Кнопка-глазок для показа/скрытия пароля */
+.btn-eye {
+    background: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: all 0.2s;
+}
+
+.btn-eye:hover {
+    background: #e0e0e0;
+    border-color: #007bff;
+}
+
+body.dark-theme .btn-eye {
+    background: #3d3d3d;
+    border-color: #555;
+    color: #e0e0e0;
+}
+
+body.dark-theme .btn-eye:hover {
+    background: #4d4d4d;
+    border-color: #007bff;
+}
+
 /* Адаптивность */
 @media (max-width: 768px) {
     .form-container {
@@ -474,4 +500,18 @@ body.dark-theme .footer-right {
     .footer-link {
         margin: 0 10px;
     }
+
+}
+
+/* Кнопка-глазок для пароля */
+.logout-icon {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.logout-icon:hover {
+    transform: scale(1.1);
 }
