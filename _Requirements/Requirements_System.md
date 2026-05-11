@@ -33,6 +33,7 @@ ________________________________
 	register_date: timestamp (Заполняется автоматически при создании пользователя)
 	birth_date: date
 	department: enum (Администрация, Бухгалтерия, АХО, Закупки, Продажи, Производство)
+	password_hash: string
 	
 Таблица clients
 	client_id: auto_increment, unique (SERIAL)
@@ -42,8 +43,10 @@ ________________________________
 	address: string
 	status: enum (Active, Stopped, Blocked)
 	created_by: int (id юзера - присваивается автоматически в БД)
+	created_at: timestamp 
+	updated_at: timestamp 
 	
 
 Flask, SQLAlchemy, Flasgger.
 	Структура: 
-		app.py, models.py, requirements.txt, docker-compose.yml для БД.
+		app.py, models.py, requirements.txt, docker-compose.yml для БД. 

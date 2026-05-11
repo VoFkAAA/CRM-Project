@@ -8,10 +8,8 @@ class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-in-production")
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "jwt-dev-secret-key")
 
-    # PostgreSQL (через Docker или локально)
-    SQLALCHEMY_DATABASE_URI = os.getenv(
-        "DATABASE_URL", "postgresql://postgres:postgreuser01@localhost:5432/CRM-Project"
-    )
+    # SQLite — работает без额外 настроек, файл базы данных создастся автоматически
+    SQLALCHEMY_DATABASE_URI = "sqlite:///crm_testing.db"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # JWT настройки
