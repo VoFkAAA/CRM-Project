@@ -249,25 +249,15 @@ def logout():
 
 
 @app.route("/clients", methods=["GET"])
-@jwt_required(optional=True)  # делаем токен опциональным для проверки
 def get_clients():
-    # Проверяем, есть ли пользователь
-    user_id = get_jwt_identity()
+    # Временно отключаем проверку токена для отладки
+    # user_id = get_jwt_identity()
+    # if not user_id:
+    #     return jsonify({"success": False, "message": "Authorization token is missing or invalid"}), 401
 
-    if not user_id:
-        return (
-            jsonify(
-                {
-                    "success": False,
-                    "message": "Authorization token is missing or invalid",
-                }
-            ),
-            401,
-        )
-
-    user = User.query.get(user_id)
-    if not user:
-        return jsonify({"success": False, "message": "User not found"}), 404
+    # user = User.query.get(user_id)
+    # if not user:
+    #     return jsonify({"success": False, "message": "User not found"}), 404
 
     clients = Client.query.all()
     return (
