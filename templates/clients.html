@@ -118,6 +118,7 @@
         }
 
         // Загрузка списка клиентов
+        // Загрузка списка клиентов
         async function loadClients() {
             try {
                 const response = await fetch(`${API_BASE}/clients`, {
@@ -129,13 +130,15 @@
                 }
 
                 const data = await response.json();
+                console.log("Ответ сервера:", data);  // ← добавили для отладки
 
-                if (data.success && data.data) {
+                // Проверяем, что ответ успешный и data.data существует
+                if (data.success && Array.isArray(data.data)) {
                     const clients = data.data;
                     const tbody = document.getElementById('clientsTableBody');
 
                     if (clients.length === 0) {
-                        tbody.innerHTML = `<tr><td colspan="6" class="loading">Нет клиентов. Создайте первого!</td></tr>`;
+                        tbody.innerHTML = '<tr><td colspan="6" class="loading">✨ Нет клиентов. Создайте первого!</td></tr>';
                         return;
                     }
 
@@ -153,7 +156,7 @@
                 </tr>
             `).join('');
 
-                    // Добавляем обработчики на кнопки (потом реализуем)
+                    // Добавляем обработчики на кнопки
                     document.querySelectorAll('.btn-edit').forEach(btn => {
                         btn.addEventListener('click', () => editClient(btn.dataset.id));
                     });
@@ -161,12 +164,14 @@
                         btn.addEventListener('click', () => deleteClient(btn.dataset.id));
                     });
                 } else {
+                    // Если структура ответа не совпадает
+                    console.error("Неожиданный формат ответа:", data);
                     throw new Error(data.message || 'Ошибка загрузки');
                 }
             } catch (err) {
                 console.error('Ошибка загрузки клиентов:', err);
                 const tbody = document.getElementById('clientsTableBody');
-                tbody.innerHTML = `<tr><td colspan="6" class="loading">❌ Ошибка загрузки клиентов</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="loading">❌ Ошибка загрузки: ${err.message}</td></tr>`;
             }
         }
 
