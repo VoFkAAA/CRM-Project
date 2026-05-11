@@ -98,51 +98,73 @@ def create_client_page():
 
 @app.route("/register", methods=["POST"])
 def register():
-    data = request.get_json()
-    name = data.get("name")
-    surname = data.get("surname")
-    email = data.get("email")
-    phone = data.get("phone")
-    password = data.get("password")
+    try:
+        print("=== REGISTER REQUEST START ===")
+        data = request.get_json()
+        print(f"Received data: {data}")
 
-    valid_name, msg_name = validate_name(name, "Имя")
-    if not valid_name:
-        return jsonify({"success": False, "message": msg_name}), 400
+        name = data.get("name")
+        surname = data.get("surname")
+        email = data.get("email")
+        phone = data.get("phone")
+        password = data.get("password")
 
-    valid_surname, msg_surname = validate_name(surname, "Фамилия")
-    if not valid_surname:
-        return jsonify({"success": False, "message": msg_surname}), 400
+        print(f"Validating name: {name}")
+        valid_name, msg_name = validate_name(name, "Имя")
+        if not valid_name:
+            return jsonify({"success": False, "message": msg_name}), 400
 
-    valid_pass, msg_pass = validate_password(password)
-    if not valid_pass:
-        return jsonify({"success": False, "message": msg_pass}), 400
+        print(f"Validating surname: {surname}")
+        valid_surname, msg_surname = validate_name(surname, "Фамилия")
+        if not valid_surname:
+            return jsonify({"success": False, "message": msg_surname}), 400
 
-    if User.query.filter_by(email=email).first():
-        return jsonify({"success": False, "message": "Email already exists"}), 409
+        print(f"Validating password")
+        valid_pass, msg_pass = validate_password(password)
+        if not valid_pass:
+            return jsonify({"success": False, "message": msg_pass}), 400
 
-    if User.query.filter_by(phone=phone).first():
-        return jsonify({"success": False, "message": "Phone already exists"}), 409
+        print(f"Checking if email exists: {email}")
+        if User.query.filter_by(email=email).first():
+            return jsonify({"success": False, "message": "Email already exists"}), 409
 
-    hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
-    user = User(
-        name=name,
-        surname=surname,
-        email=email,
-        phone=phone,
-        password_hash=hashed.decode("utf-8"),
-    )
-    db.session.add(user)
-    db.session.commit()
-    return (
-        jsonify(
-            {
-                "success": True,
-                "message": "User account created successfully",
-                "data": user.to_dict(),
-            }
-        ),
-        201,
-    )
+        print(f"Checking if phone exists: {phone}")
+        if User.query.filter_by(phone=phone).first():
+            return jsonify({"success": False, "message": "Phone already exists"}), 409
+
+        print(f"Hashing password")
+        hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt())
+
+        print(f"Creating user object")
+        user = User(
+            name=name,
+            surname=surname,
+            email=email,
+            phone=phone,
+            password_hash=hashed.decode("utf-8"),
+        )
+
+        print(f"Adding to database")
+        db.session.add(user)
+        db.session.commit()
+        print("=== USER CREATED SUCCESSFULLY ===")
+
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "message": "User account created successfully",
+                    "data": user.to_dict(),
+                }
+            ),
+            201,
+        )
+    except Exception as e:
+        print(f"!!!!!!!!! CRITICAL ERROR IN REGISTER: {str(e)}")
+        import traceback
+
+        traceback.print_exc()
+        return jsonify({"success": False, "message": f"Server error: {str(e)}"}), 500
 
 
 @app.route("/login", methods=["POST"])
