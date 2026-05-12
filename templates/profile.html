@@ -91,15 +91,16 @@
     </footer>
 
     <script>
-        const API_BASE = 'https://crm-project-yc8x.onrender.com';
-        const token = localStorage.getItem('access_token');
+        const API_BASE = window.location.origin;
         let userData = null;
 
+        // Проверка авторизации
+        const token = localStorage.getItem('access_token');
         if (!token) {
             window.location.href = '/';
         }
 
-        // Переключение темы
+        // Переключение темы (БАГ: кнопка в нижнем левом углу)
         const themeSwitcher = document.getElementById('themeSwitcher');
         let isDark = false;
 
@@ -112,28 +113,41 @@
         // Загрузка данных пользователя
         async function loadUserProfile() {
             try {
-                const storedUser = localStorage.getItem('user');
-                if (storedUser) {
-                    userData = JSON.parse(storedUser);
-                    fillForm(userData);
-                }
+                const token = localStorage.getItem('access_token');
+                console.log("Loading profile, token exists:", !!token);
 
-                // Дополнительно запрашиваем свежие данные с сервера
                 const response = await fetch(`${API_BASE}/update_profile`, {
                     method: 'GET',
-                    headers: { 'Authorization': `Bearer ${token}` }
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
                 });
 
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success && data.data) {
-                        userData = data.data;
-                        fillForm(userData);
-                        localStorage.setItem('user', JSON.stringify(userData));
+                console.log("Profile response status:", response.status);
+
+                if (!response.ok) {
+                    if (response.status === 401 || response.status === 422) {
+                        localStorage.removeItem('access_token');
+                        window.location.href = '/';
+                        return;
                     }
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log("Profile data:", data);
+
+                if (data.success && data.data) {
+                    userData = data.data;
+                    fillForm(userData);
+                    localStorage.setItem('user', JSON.stringify(userData));
                 }
             } catch (err) {
-                console.error('Ошибка загрузки профиля:', err);
+                console.error('Error loading profile:', err);
+                const errorDiv = document.getElementById('errorMessage');
+                errorDiv.textContent = 'Ошибка загрузки профиля: ' + err.message;
+                errorDiv.style.display = 'block';
             }
         }
 
@@ -175,13 +189,14 @@
                 return;
             }
 
-            // БАГ: нет проверки на уникальность email и телефона (по требованиям бага)
-
             const updateData = { name, surname, email, phone };
             if (birth_date) updateData.birth_date = birth_date;
             if (department) updateData.department = department;
 
             try {
+                const token = localStorage.getItem('access_token');
+                console.log("Updating profile...");
+
                 const response = await fetch(`${API_BASE}/update_profile`, {
                     method: 'PUT',
                     headers: {
@@ -191,9 +206,20 @@
                     body: JSON.stringify(updateData)
                 });
 
+                console.log("Update response status:", response.status);
+
+                if (!response.ok) {
+                    if (response.status === 401 || response.status === 422) {
+                        localStorage.removeItem('access_token');
+                        window.location.href = '/';
+                        return;
+                    }
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
                 const data = await response.json();
 
-                if (response.ok && data.success) {
+                if (data.success) {
                     successDiv.textContent = 'Профиль успешно обновлён!';
                     successDiv.style.display = 'block';
                     if (data.data) {
@@ -207,7 +233,8 @@
                     errorDiv.style.display = 'block';
                 }
             } catch (err) {
-                errorDiv.textContent = 'Ошибка сети';
+                console.error('Update error:', err);
+                errorDiv.textContent = 'Ошибка сети: ' + err.message;
                 errorDiv.style.display = 'block';
             }
         });
@@ -217,10 +244,10 @@
             window.location.href = '/clients_page';
         });
 
-
-        // Выход (иконка в шапке)
+        // Выход
         document.getElementById('logoutBtnIcon').addEventListener('click', async () => {
             try {
+                const token = localStorage.getItem('access_token');
                 await fetch(`${API_BASE}/logout`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${token}` }
@@ -235,11 +262,14 @@
         // Футер ссылки
         document.getElementById('privacyPolicyLink').onclick = (e) => {
             e.preventDefault();
-            alert(`Политика конфиденциальности\n\n1. Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.\n\n2. Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32.\n\n3. There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable. If you are going to use a passage of Lorem Ipsum, you need to be sure there isn't anything embarrassing hidden in the middle of text. All the Lorem Ipsum generators on the Internet tend to repeat predefined chunks as necessary, making this the first true generator on the Internet. It uses a dictionary of over 200 Latin words, combined with a handful of model sentence structures, to generate Lorem Ipsum which looks reasonable. The generated Lorem Ipsum is therefore always free from repetition, injected humour, or non-characteristic words etc.`);
+            // БАГ: нечитабельный текст
+            const garbled = "ÐŸÐ¾Ð»Ð¸Ñ‚Ð¸ÐºÐ° ÐºÐ¾Ð½Ñ„Ð¸Ð´ÐµÐ½Ñ†Ð¸Ð°Ð»ÑŒÐ½Ð¾ÑÑ‚Ð¸";
+            alert(garbled);
         };
+
         document.getElementById('termsOfUseLink').onclick = (e) => {
             e.preventDefault();
-            alert(`Условия использования\n\n1. Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.\n\n2. Contrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC, making it over 2000 years old. Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of "de Finibus Bonorum et Malorum" (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem Ipsum, "Lorem ipsum dolor sit amet..", comes from a line in section 1.10.32.\n\n3. There are many variations of passages of Lorem Ipsum available, but the majority have suffered alteration in some form, by injected humour, or randomised words which don't look even slightly believable. If you are going to use a passage of Lorem Ipsum, you need to be sure there isn't anything embarrassing hidden in the middle of text. All the Lorem Ipsum generators on the Internet tend to repeat predefined chunks as necessary, making this the first true generator on the Internet. It uses a dictionary of over 200 Latin words, combined with a handful of model sentence structures, to generate Lorem Ipsum which looks reasonable. The generated Lorem Ipsum is therefore always free from repetition, injected humour, or non-characteristic words etc.`);
+            alert(`Условия использования\n\n1. Lorem Ipsum...`);
         };
 
         // Загрузка

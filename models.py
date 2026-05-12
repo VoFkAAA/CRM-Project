@@ -27,18 +27,23 @@ class User(db.Model):
     name = db.Column(db.String(50), nullable=False)
     surname = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
-    phone = db.Column(db.String(10), unique=True, nullable=False)  # 10 цифр
+    phone = db.Column(db.String(10), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
     register_date = db.Column(db.DateTime, default=datetime.utcnow)
     birth_date = db.Column(db.Date, nullable=True)
-    department = db.Column(db.Enum(DepartmentEnum), nullable=True)
+    department = db.Column(
+        db.String(50), nullable=True
+    )  # Изменено на String для совместимости
 
-    # Связь с клиентами
     clients = db.relationship(
         "Client", backref="owner", lazy=True, cascade="all, delete-orphan"
     )
 
     def to_dict(self):
+        # БАГ: в register_date отображается неправильная дата (год 1970)
+        # Симулируем баг - возвращаем фиксированную дату
+        bug_date = datetime(1970, 1, 1) if self.register_date else None
+
         return {
             "user_id": self.user_id,
             "name": self.name,
@@ -46,10 +51,10 @@ class User(db.Model):
             "email": self.email,
             "phone": self.phone,
             "register_date": (
-                self.register_date.isoformat() if self.register_date else None
+                bug_date.isoformat() if bug_date else "1970-01-01T00:00:00"
             ),
             "birth_date": self.birth_date.isoformat() if self.birth_date else None,
-            "department": self.department.value if self.department else None,
+            "department": self.department,
         }
 
 
@@ -61,7 +66,7 @@ class Client(db.Model):
     email = db.Column(db.String(100), unique=True, nullable=False)
     phone = db.Column(db.String(10), unique=True, nullable=False)
     address = db.Column(db.String(200), nullable=True)
-    status = db.Column(db.Enum(ClientStatusEnum), default=ClientStatusEnum.ACTIVE)
+    status = db.Column(db.String(20), default=ClientStatusEnum.ACTIVE.value)
     created_by = db.Column(db.Integer, db.ForeignKey("users.user_id"), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(
@@ -75,7 +80,7 @@ class Client(db.Model):
             "email": self.email,
             "phone": self.phone,
             "address": self.address,
-            "status": self.status.value if self.status else None,
+            "status": self.status,
             "created_by": self.created_by,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
