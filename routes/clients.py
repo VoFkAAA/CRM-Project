@@ -82,8 +82,8 @@ def create():
 
     user_id = get_jwt_identity()
 
-    process_client_validation_errors(client_name, email, phone)
-
+    if error_messages := check_client_validation_errors(client_name, email, phone):
+        return jsonify({"success": False, "message": "\n".join(error_messages)}), 400
     try:
         new_client = Client(
             client_name=client_name,
@@ -201,8 +201,8 @@ def update_client(client_id: int) -> Response:
     """
     data = request.get_json()
 
-    process_client_validation_errors(data.get("client_name"), data.get("email"), data.get("phone"))
-    
+    if error_messages := check_client_validation_errors(data.get("client_name"), data.get("email"), data.get("phone")):
+        return jsonify({"success": False, "message": "\n".join(error_messages)}), 400
 
     client = db.get_or_404(Client, client_id)
 
@@ -269,13 +269,16 @@ def patch_client(client_id: int) -> Response:
 
     try:
         if data.get("client_name"):
-            process_client_validation_errors(data["client_name"])
-            client.client_name = data["client_name"]
+          if error_messages := check_client_validation_errors(data["client_name"]):
+              return jsonify({"success": False, "message": "\n".join(error_messages)}), 400            
+          client.client_name = data["client_name"]
         if data.get("email"):
-            process_client_validation_errors(data["email"])
+            if error_messages := check_client_validation_errors(data["email"]):
+                return jsonify({"success": False, "message": "\n".join(error_messages)}), 400     
             client.email = data["email"]
         if data.get("phone"):
-            process_client_validation_errors(data["phone"])
+            if error_messages := check_client_validation_errors(data["phone"]):
+                return jsonify({"success": False, "message": "\n".join(error_messages)}), 400   
             client.phone = data["phone"]
         if data.get("address"):
             client.address = data["address"]
@@ -300,20 +303,21 @@ def patch_client(client_id: int) -> Response:
 
 
 
-def process_client_validation_errors(client_name: str = None, email: str = None, phone: str = None) -> Response:
+def check_client_validation_errors(client_name: str = None, email: str = None, phone: str = None) -> str:
     error_messages = []
     if client_name is not None:
-        valid_name, msg = validate_name(client_name)
+        valid_name, err_msg = validate_name(client_name)
         if not valid_name:
-            error_messages.append(msg)
+            error_messages.append(err_msg)
     if email is not None:
-        valid_email, msg = validate_email(email)
+        valid_email, err_msg = validate_email(email)
         if not valid_email:
-            error_messages.append(msg)
+            error_messages.append(err_msg)
 
     if phone is not None:
-        valid_phone, msg = validate_phone_number(phone)
+        valid_phone, err_msg = validate_phone_number(phone)
+        print(valid_phone)
         if not valid_phone:
-            error_messages.append(msg)
+            error_messages.append(err_msg)
 
-    return jsonify({"success": False, "message": error_messages}), 400
+    return error_messages
