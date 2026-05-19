@@ -18,3 +18,5 @@ class Config:
         raise ValueError("DATABASE_URL не задан на сервере")
 
     SQLALCHEMY_DATABASE_URI = DATABASE_URL
+
+    SQLALCHEMY_ENGINE_OPTIONS = {"connect_args": {"options": "-c client_encoding=utf8"}}

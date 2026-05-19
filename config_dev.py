@@ -19,3 +19,5 @@ class Config:
 
     if not SQLALCHEMY_DATABASE_URI:
         raise ValueError("DATABASE_URL не задан в .env файле")
+
+    SQLALCHEMY_ENGINE_OPTIONS = {"connect_args": {"options": "-c client_encoding=utf8"}}
