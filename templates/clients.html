@@ -18,7 +18,10 @@
     <div class="main-container">
         <header class="main-header">
             <h1>Мои клиенты</h1>
-            <button id="profileBtn" class="profile-btn">👤 Профиль</button>
+            <div style="display: flex; gap: 15px;">
+                <button id="profileBtn" class="profile-btn">👤 Профиль</button>
+                <button id="logoutBtn" class="profile-btn" style="background: #dc3545;">🔚 Выйти</button>
+            </div>
         </header>
 
         <div class="clients-controls">
@@ -281,6 +284,24 @@
 
         // Выход
         window.addEventListener('beforeunload', () => { });
+
+        // Кнопка выхода
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            try {
+                const token = localStorage.getItem('access_token');
+                await fetch(`${API_BASE}/logout`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+            } catch (err) {
+                // Игнорируем ошибки сети при выходе
+            }
+
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('user');
+            window.location.href = '/';
+        });
+
     </script>
 </body>
 
