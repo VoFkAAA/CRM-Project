@@ -66,7 +66,8 @@ class Client(db.Model):
     email = db.Column(db.String(100), unique=True, nullable=False)
     phone = db.Column(db.String(10), unique=True, nullable=False)
     address = db.Column(db.String(200), nullable=True)
-    status = db.Column(db.String(20), default=ClientStatusEnum.ACTIVE.value)
+    # Убрать default, чтобы поле могло быть пустым
+    status = db.Column(db.String(20), nullable=True)
     created_by = db.Column(db.Integer, db.ForeignKey("users.user_id"), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(

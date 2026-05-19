@@ -47,46 +47,26 @@ def get_clients():
 @client_bp.route("/create_client", methods=["POST"])
 @jwt_required()
 def create():
-    """Создание нового клиента
-    ---
-    tags:
-      - Clients
-    parameters:
-      - in: body
-        name: body
-        required: true
-        schema:
-          type: object
-          properties:
-            client_name:
-              type: string
-            email:
-              type: string
-            phone:
-              type: string
-            address:
-              type: string
-            status:
-              type: string
-              enum: [Active, Stopped, Blocked]
-    responses:
-      201:
-        description: Client created successfully
-      400:
-        description: Validation error
-    """
     data = request.get_json()
 
     client_name = data.get("client_name")
     email = data.get("email")
     phone = data.get("phone")
     address = data.get("address", "")
-    status = data.get("status", "Active")
+    status = data.get("status")  # если не выбран — вернётся None или пустая строка
+
+    if not status:  # пустая строка или None → None
+        status = None
 
     user_id = get_jwt_identity()
 
     if error_messages := check_client_validation_errors(client_name, email, phone):
         return jsonify({"success": False, "message": "\n".join(error_messages)}), 400
+
+    # Если статус не выбран, не передаём его в БД (будет NULL или значение по умолчанию в модели)
+    if not status:
+        status = None
+
     try:
         new_client = Client(
             client_name=client_name,

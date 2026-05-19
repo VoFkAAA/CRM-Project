@@ -2,29 +2,33 @@ import re
 
 
 def clean_phone_number(phone: str) -> str:
-    """Очистка телефона"""
-    return phone[1:]
+    """Очистка телефона — возвращает 10 цифр"""
+    # Удаляем всё, кроме цифр
+    phone_clean = re.sub(r"\D", "", phone)
 
-        
+    # Если пришло 11 цифр и начинается с 7 или 8 — отрезаем первую
+    if len(phone_clean) == 11 and phone_clean[0] in ("7", "8"):
+        return phone_clean[1:]
 
-def validate_phone_input(phone_input: str) -> tuple[bool, str]:
-    valid = True
-    msg = ""
-    if len(phone_input) != 11 and not phone_input.startswith(("7", "8")):
-        valid = False
-        msg = "Введенный телефона должен начинаться с 7 или 8  и содержать 11 цифр"
-    return valid, msg
+    # Иначе возвращаем как есть (должно быть 10 цифр)
+    return phone_clean
 
 
 def validate_phone_number(phone_input: str) -> tuple[bool, str]:
     valid = True
     msg = ""
-    if len(phone_input) != 11 or not phone_input.isdigit():
+
+    # Очищаем от нецифр (на всякий случай)
+    phone_clean = re.sub(r"\D", "", phone_input)
+
+    # Должно быть ровно 10 цифр (согласно требованиям)
+    if len(phone_clean) != 10:
         valid = False
-        msg = "Телефон должен содержать 11 цифр"
-    elif not phone_input.startswith(("7", "8")):
+        msg = "Телефон должен содержать 10 цифр"
+    elif not phone_clean.isdigit():
         valid = False
-        msg = "Телефон должен начинаться с 7 или 8"
+        msg = "Телефон должен содержать только цифры"
+
     return valid, msg
 
 
