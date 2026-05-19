@@ -1,9 +1,8 @@
 import os
 
-# Определяем окружение по переменной ENV
 ENV = os.getenv("ENV", "local")
 
 if ENV == "server":
-    from config_server import Config
+    from config_prod import Config
 else:
-    from config_local import Config
+    from config_dev import Config

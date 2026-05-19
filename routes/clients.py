@@ -7,11 +7,14 @@ from flask_jwt_extended import (
 from sqlalchemy.exc import IntegrityError
 
 from models import db, Client
-from helpers.validation_helper import (clean_phone_number, validate_phone_number,
-                               validate_name, validate_email)
+from helpers.validation_helper import (
+    clean_phone_number,
+    validate_phone_number,
+    validate_name,
+    validate_email,
+)
 
-
-client_bp = Blueprint('client_bp', __name__)
+client_bp = Blueprint("client_bp", __name__)
 
 
 @client_bp.route("/clients", methods=["GET"])
@@ -96,7 +99,7 @@ def create():
 
         db.session.add(new_client)
         db.session.commit()
-    except IntegrityError  as err:
+    except IntegrityError as err:
         db.session.rollback()
         # Handle the duplicate, e.g., return an error message to the user
         return (
@@ -121,7 +124,7 @@ def create():
     )
 
 
-@client_bp.route("/clients/<int:client_id>/", methods=['GET'])
+@client_bp.route("/clients/<int:client_id>/", methods=["GET"])
 @jwt_required()
 def get_client(client_id: int) -> Response:
     """Получение одного клиента
@@ -142,7 +145,7 @@ def get_client(client_id: int) -> Response:
     return jsonify(client.to_dict()), 200
 
 
-@client_bp.route("/clients/<int:client_id>/", methods=['DELETE'])
+@client_bp.route("/clients/<int:client_id>/", methods=["DELETE"])
 @jwt_required()
 def delete_client(client_id: int) -> Response:
     """Удаление клиента
@@ -165,7 +168,7 @@ def delete_client(client_id: int) -> Response:
     return jsonify({"message": "Client deleted successfully"}), 204
 
 
-@client_bp.route("/clients/<int:client_id>/", methods=['PUT'])
+@client_bp.route("/clients/<int:client_id>/", methods=["PUT"])
 @jwt_required()
 def update_client(client_id: int) -> Response:
     """Обновление клиента
@@ -201,7 +204,9 @@ def update_client(client_id: int) -> Response:
     """
     data = request.get_json()
 
-    if error_messages := check_client_validation_errors(data.get("client_name"), data.get("email"), data.get("phone")):
+    if error_messages := check_client_validation_errors(
+        data.get("client_name"), data.get("email"), data.get("phone")
+    ):
         return jsonify({"success": False, "message": "\n".join(error_messages)}), 400
 
     client = db.get_or_404(Client, client_id)
@@ -229,7 +234,7 @@ def update_client(client_id: int) -> Response:
         )
 
 
-@client_bp.route("/clients/<int:client_id>/", methods=['PATCH'])
+@client_bp.route("/clients/<int:client_id>/", methods=["PATCH"])
 @jwt_required()
 def patch_client(client_id: int) -> Response:
     """Патчинг клиента
@@ -264,21 +269,30 @@ def patch_client(client_id: int) -> Response:
         description: Client not found
     """
     data = request.get_json()
-    
+
     client = db.get_or_404(Client, client_id)
 
     try:
         if data.get("client_name"):
-          if error_messages := check_client_validation_errors(data["client_name"]):
-              return jsonify({"success": False, "message": "\n".join(error_messages)}), 400            
-          client.client_name = data["client_name"]
+            if error_messages := check_client_validation_errors(data["client_name"]):
+                return (
+                    jsonify({"success": False, "message": "\n".join(error_messages)}),
+                    400,
+                )
+            client.client_name = data["client_name"]
         if data.get("email"):
             if error_messages := check_client_validation_errors(data["email"]):
-                return jsonify({"success": False, "message": "\n".join(error_messages)}), 400     
+                return (
+                    jsonify({"success": False, "message": "\n".join(error_messages)}),
+                    400,
+                )
             client.email = data["email"]
         if data.get("phone"):
             if error_messages := check_client_validation_errors(data["phone"]):
-                return jsonify({"success": False, "message": "\n".join(error_messages)}), 400   
+                return (
+                    jsonify({"success": False, "message": "\n".join(error_messages)}),
+                    400,
+                )
             client.phone = data["phone"]
         if data.get("address"):
             client.address = data["address"]
@@ -302,8 +316,9 @@ def patch_client(client_id: int) -> Response:
         )
 
 
-
-def check_client_validation_errors(client_name: str = None, email: str = None, phone: str = None) -> str:
+def check_client_validation_errors(
+    client_name: str = None, email: str = None, phone: str = None
+) -> str:
     error_messages = []
     if client_name is not None:
         valid_name, err_msg = validate_name(client_name)
