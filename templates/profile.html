@@ -19,57 +19,56 @@
                 <h1>Профиль</h1>
                 <button class="close-btn" onclick="window.location.href='/clients_page'">&times;</button>
             </div>
+
+            <div class="error-message" id="errorMessage" style="display: none;"></div>
+            <div class="success-message" id="successMessage" style="display: none;"></div>
+
+            <form id="profileForm">
+                <div class="form-group">
+                    <label for="name">Имя *</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="surname">Фамилия *</label>
+                    <input type="text" id="surname" name="surname" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email *</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">Телефон *</label>
+                    <input type="tel" id="phone" name="phone" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="birth_date">Дата рождения</label>
+                    <input type="date" id="birth_date" name="birth_date">
+                </div>
+
+                <div class="form-group">
+                    <label for="department">Подразделение</label>
+                    <select id="department" name="department">
+                        <option value="">Не выбрано</option>
+                        <option value="Администрация">Администрация</option>
+                        <option value="Бухгалтерия">Бухгалтерия</option>
+                        <option value="АХО">АХО</option>
+                        <option value="Закупки">Закупки</option>
+                        <option value="Продажи">Продажи</option>
+                        <option value="Производство">Производство</option>
+                    </select>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" id="cancelBtn" class="btn-secondary">Отмена</button>
+                    <button type="submit" class="btn-primary">Сохранить</button>
+                </div>
+            </form>
+
         </div>
-
-        <div class="error-message" id="errorMessage" style="display: none;"></div>
-        <div class="success-message" id="successMessage" style="display: none;"></div>
-
-        <form id="profileForm">
-            <div class="form-group">
-                <label for="name">Имя *</label>
-                <input type="text" id="name" name="name" required>
-            </div>
-
-            <div class="form-group">
-                <label for="surname">Фамилия *</label>
-                <input type="text" id="surname" name="surname" required>
-            </div>
-
-            <div class="form-group">
-                <label for="email">Email *</label>
-                <input type="email" id="email" name="email" required>
-            </div>
-
-            <div class="form-group">
-                <label for="phone">Телефон *</label>
-                <input type="tel" id="phone" name="phone" required>
-            </div>
-
-            <div class="form-group">
-                <label for="birth_date">Дата рождения</label>
-                <input type="date" id="birth_date" name="birth_date">
-            </div>
-
-            <div class="form-group">
-                <label for="department">Подразделение</label>
-                <select id="department" name="department">
-                    <option value="">Не выбрано</option>
-                    <option value="Администрация">Администрация</option>
-                    <option value="Бухгалтерия">Бухгалтерия</option>
-                    <option value="АХО">АХО</option>
-                    <option value="Закупки">Закупки</option>
-                    <option value="Продажи">Продажи</option>
-                    <option value="Производство">Производство</option>
-                </select>
-            </div>
-
-            <div class="form-actions">
-                <button type="button" id="cancelBtn" class="btn-secondary">Отмена</button>
-                <button type="submit" class="btn-primary">Сохранить</button>
-            </div>
-        </form>
-
-    </div>
     </div>
 
     <footer class="footer">
