@@ -371,7 +371,6 @@ def health_check():
 
 
 @user_bp.route("/edit_client_page/<int:client_id>")
-@jwt_required()
 def edit_client_page(client_id):
     return render_template("edit_client.html")
 
