@@ -253,7 +253,7 @@
             if (clientToDelete) {
                 try {
                     const token = localStorage.getItem('access_token');
-                    const response = await fetch(`${API_BASE}/delete_client?client_id=${clientToDelete}`, {
+                    const response = await fetch(`${API_BASE}/clients/${clientToDelete}/`, {
                         method: 'DELETE',
                         headers: {
                             'Authorization': `Bearer ${token}`,
