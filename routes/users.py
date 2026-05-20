@@ -11,11 +11,9 @@ from flask_jwt_extended import (
 from flask_cors import CORS
 
 from models import db, User
-from helpers.validation_helper import (validate_password, validate_name,
-                               validate_email)
+from helpers.validation_helper import validate_password, validate_name, validate_email
 
-
-user_bp = Blueprint('users_bp', __name__)
+user_bp = Blueprint("users_bp", __name__)
 
 
 @user_bp.route("/")
@@ -102,7 +100,7 @@ def register():
         valid_surname, msg_surname = validate_name(surname, "Фамилия")
         if not valid_surname:
             return jsonify({"success": False, "message": msg_surname}), 400
-        
+
         valid_email, msg = validate_email(email)
         if not valid_email:
             return jsonify({"success": False, "message": msg}), 400
@@ -370,6 +368,12 @@ def logout():
 @user_bp.route("/health", methods=["GET"])
 def health_check():
     return jsonify({"status": "ok", "message": "Server is running"}), 200
+
+
+@user_bp.route("/edit_client_page/<int:client_id>")
+@jwt_required()
+def edit_client_page(client_id):
+    return render_template("edit_client.html")
 
 
 @user_bp.after_request
