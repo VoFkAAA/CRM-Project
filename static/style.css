@@ -392,8 +392,15 @@ body.dark-theme .modal-content {
 
 .modal-buttons {
     display: flex;
+    justify-content: space-between;
     gap: 15px;
     margin-top: 20px;
+}
+
+.modal-buttons button {
+    padding: 10px 24px;
+    min-width: 100px;
+    flex: 0 1 auto;
 }
 
 .copyable {
