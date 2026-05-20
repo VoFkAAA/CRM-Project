@@ -247,14 +247,15 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    successDiv.textContent = 'Профиль успешно обновлён!';
-                    successDiv.style.display = 'block';
                     if (data.data) {
                         localStorage.setItem('user', JSON.stringify(data.data));
                     }
+                    // Показываем сообщение и через секунду закрываем
+                    successDiv.textContent = 'Профиль успешно обновлён!';
+                    successDiv.style.display = 'block';
                     setTimeout(() => {
-                        successDiv.style.display = 'none';
-                    }, 3000);
+                        window.location.href = '/clients_page';
+                    }, 1000);
                 } else {
                     errorDiv.textContent = data.message || 'Ошибка обновления';
                     errorDiv.style.display = 'block';
