@@ -75,16 +75,31 @@
     </footer>
 
     <script>
-        const API_BASE = window.location.origin;
+        // Загрузка сохранённой темы
+        const savedTheme = localStorage.getItem('theme');
+        let isDark = savedTheme === 'dark';
 
-        // Переключение темы
+        if (isDark) {
+            document.body.classList.add('dark-theme');
+            document.body.classList.remove('light-theme');
+        } else {
+            document.body.classList.add('light-theme');
+            document.body.classList.remove('dark-theme');
+        }
+
+        // Обновляем текст кнопки
         const themeSwitcher = document.getElementById('themeSwitcher');
-        let isDark = false;
+        if (themeSwitcher) {
+            themeSwitcher.textContent = isDark ? '☀️ Светлая тема' : '🌙 Тёмная тема';
+        }
+
+        const API_BASE = window.location.origin;
 
         themeSwitcher.addEventListener('click', () => {
             isDark = !isDark;
             document.body.className = isDark ? 'dark-theme' : 'light-theme';
             themeSwitcher.textContent = isDark ? '☀️ Светлая тема' : '🌙 Тёмная тема';
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');  // ← ДОБАВИТЬ ЭТУ СТРОКУ
         });
 
         // БАГ: Кнопка переключения темы в нижнем левом углу (должна быть в верхнем)

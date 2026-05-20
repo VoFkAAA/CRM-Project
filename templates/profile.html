@@ -86,6 +86,24 @@
     </footer>
 
     <script>
+        // Загрузка сохранённой темы
+        const savedTheme = localStorage.getItem('theme');
+        let isDark = savedTheme === 'dark';
+
+        if (isDark) {
+            document.body.classList.add('dark-theme');
+            document.body.classList.remove('light-theme');
+        } else {
+            document.body.classList.add('light-theme');
+            document.body.classList.remove('dark-theme');
+        }
+
+        // Обновляем текст кнопки
+        const themeSwitcher = document.getElementById('themeSwitcher');
+        if (themeSwitcher) {
+            themeSwitcher.textContent = isDark ? '☀️ Светлая тема' : '🌙 Тёмная тема';
+        }
+
         const API_BASE = window.location.origin;
         let userData = null;
 
@@ -95,14 +113,11 @@
             window.location.href = '/';
         }
 
-        // Переключение темы (БАГ: кнопка в нижнем левом углу)
-        const themeSwitcher = document.getElementById('themeSwitcher');
-        let isDark = false;
-
         themeSwitcher.addEventListener('click', () => {
             isDark = !isDark;
             document.body.className = isDark ? 'dark-theme' : 'light-theme';
             themeSwitcher.textContent = isDark ? '☀️ Светлая тема' : '🌙 Тёмная тема';
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');  // ← ДОБАВИТЬ ЭТУ СТРОКУ
         });
 
         // Загрузка данных пользователя
