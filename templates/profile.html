@@ -41,7 +41,12 @@
 
                 <div class="form-group">
                     <label for="phone">Телефон *</label>
-                    <input type="tel" id="phone" name="phone" required>
+                    <div style="display: flex; align-items: center; gap: 5px;">
+                        <span class="phone-prefix"
+                            style="background: #f0f0f0; padding: 12px; border-radius: 8px; border: 1px solid #ddd;">+7</span>
+                        <input type="tel" id="phone" name="phone" placeholder="(XXX) XXX-XX-XX" required
+                            style="flex: 1;">
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -165,7 +170,19 @@
             document.getElementById('name').value = user.name || '';
             document.getElementById('surname').value = user.surname || '';
             document.getElementById('email').value = user.email || '';
-            document.getElementById('phone').value = user.phone || '';
+
+            // Форматируем телефон при загрузке
+            let phoneValue = user.phone || '';
+            let formatted = '';
+            for (let i = 0; i < phoneValue.length; i++) {
+                if (i === 0) formatted += '(';
+                formatted += phoneValue[i];
+                if (i === 2) formatted += ') ';
+                if (i === 5) formatted += '-';
+                if (i === 7) formatted += '-';
+            }
+            document.getElementById('phone').value = formatted;
+
             document.getElementById('birth_date').value = user.birth_date || '';
             document.getElementById('department').value = user.department || '';
         }
@@ -266,6 +283,23 @@
             e.preventDefault();
             alert(`Условия использования\n\n1. Lorem Ipsum...`);
         };
+
+        // Форматирование телефона (маска ввода) с фиксированным +7
+        const phoneInput = document.getElementById('phone');
+        phoneInput.addEventListener('input', (e) => {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 10) value = value.slice(0, 10);
+
+            let formatted = '';
+            for (let i = 0; i < value.length; i++) {
+                if (i === 0) formatted += '(';
+                formatted += value[i];
+                if (i === 2) formatted += ') ';
+                if (i === 5) formatted += '-';
+                if (i === 7) formatted += '-';
+            }
+            e.target.value = formatted;
+        });
 
         // Загрузка
         loadUserProfile();

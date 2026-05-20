@@ -532,3 +532,19 @@ body.dark-theme .btn-eye:hover {
 .logout-icon:hover {
     transform: scale(1.1);
 }
+
+/* Фиксированный префикс +7 */
+.phone-prefix {
+    background: #f0f0f0;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    color: #333;
+}
+
+/* Тёмная тема */
+body.dark-theme .phone-prefix {
+    background: #3d3d3d !important;
+    border-color: #555 !important;
+    color: #e0e0e0 !important;
+}
