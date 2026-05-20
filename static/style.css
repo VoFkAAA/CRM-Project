@@ -178,10 +178,13 @@ body.dark-theme select {
     margin-top: 30px;
 }
 
-.form-actions button {
+/* Отменяем растягивание кнопок именно в форме */
+.form-actions .btn-primary,
+.form-actions .btn-secondary {
+    width: auto;
+    flex: 0 1 auto;
     padding: 10px 24px;
     min-width: 120px;
-    flex: 0 1 auto;
 }
 
 .profile-btn {
