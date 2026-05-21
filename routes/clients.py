@@ -203,7 +203,7 @@ def update_client(client_id: int) -> Response:
     try:
         client.client_name = data.get("client_name")
         client.email = data.get("email")
-        client.phone = data.get("phone")
+        client.phone = data.get("phone") if data.get("phone") else None
         client.address = data.get("address")
         client.status = data.get("status")
 
