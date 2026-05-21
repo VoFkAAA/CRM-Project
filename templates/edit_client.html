@@ -172,6 +172,19 @@
             errorDiv.style.display = 'none';
             successDiv.style.display = 'none';
 
+            // Валидация для поля "Клиент"
+            if (!client_name || client_name.length < 4) {
+                errorDiv.textContent = 'Название клиента должно содержать минимум 4 символа';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            if (client_name.length > 150) {
+                errorDiv.textContent = 'Название клиента должно содержать максимум 150 символов';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            // Все символы разрешены — никаких дополнительных проверок
+
             // БАГ: пропущена валидация телефона — можно сохранить пустой или короткий
             // if (phone.length !== 10) { errorDiv.textContent = 'Введите корректный телефон (10 цифр)'; return; }
 

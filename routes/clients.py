@@ -10,7 +10,7 @@ from models import db, Client
 from helpers.validation_helper import (
     clean_phone_number,
     validate_phone_number,
-    validate_name,
+    validate_client_name,
     validate_email,
 )
 
@@ -79,29 +79,36 @@ def create():
 
         db.session.add(new_client)
         db.session.commit()
-    except IntegrityError as err:
-        db.session.rollback()
-        # Handle the duplicate, e.g., return an error message to the user
+
         return (
             jsonify(
                 {
-                    "success": False,
-                    "message": f"Получена ошибка уникальности {err.orig}",
+                    "success": True,
+                    "message": "Клиент успешно создан",
+                    "data": new_client.to_dict(),
                 }
             ),
             201,
         )
 
-    return (
-        jsonify(
-            {
-                "success": True,
-                "message": "Клиент успешно создан",
-                "data": new_client.to_dict(),
-            }
-        ),
-        201,
-    )
+    except IntegrityError as err:
+        db.session.rollback()
+        # Проверяем тип ошибки уникальности
+        error_str = str(err.orig)
+        if "clients_email_key" in error_str:
+            return jsonify({"success": False, "message": "Email уже существует"}), 409
+        elif "clients_phone_key" in error_str:
+            return jsonify({"success": False, "message": "Телефон уже существует"}), 409
+        else:
+            return (
+                jsonify(
+                    {
+                        "success": False,
+                        "message": "Клиент с такими данными уже существует",
+                    }
+                ),
+                409,
+            )
 
 
 @client_bp.route("/clients/<int:client_id>/", methods=["GET"])
@@ -184,8 +191,10 @@ def update_client(client_id: int) -> Response:
     """
     data = request.get_json()
 
+    ## Можно сохранить без указания телефона (с пустым полем Телефон)
+
     if error_messages := check_client_validation_errors(
-        data.get("client_name"), data.get("email"), data.get("phone")
+        data.get("client_name"), data.get("email"), None
     ):
         return jsonify({"success": False, "message": "\n".join(error_messages)}), 400
 
@@ -301,7 +310,7 @@ def check_client_validation_errors(
 ) -> str:
     error_messages = []
     if client_name is not None:
-        valid_name, err_msg = validate_name(client_name)
+        valid_name, err_msg = validate_client_name(client_name)
         if not valid_name:
             error_messages.append(err_msg)
     if email is not None:

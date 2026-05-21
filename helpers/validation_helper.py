@@ -83,3 +83,13 @@ def validate_email(email):
         valid = False
         msg = "Некорректный email"
     return valid, msg
+
+
+def validate_client_name(client_name: str) -> tuple[bool, str]:
+    """Валидация имени клиента (согласно требованиям CRM)"""
+    if not client_name or len(client_name) < 4:
+        return False, "Название клиента должно содержать минимум 4 символа"
+    if len(client_name) > 150:
+        return False, "Название клиента должно содержать максимум 150 символов"
+    # Разрешены все символы — никаких дополнительных проверок
+    return True, ""

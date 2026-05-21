@@ -64,7 +64,7 @@ class Client(db.Model):
     client_id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     client_name = db.Column(db.String(150), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
-    phone = db.Column(db.String(10), unique=True, nullable=False)
+    phone = db.Column(db.String(10), nullable=False)
     address = db.Column(db.String(200), nullable=True)
     # Убрать default, чтобы поле могло быть пустым
     status = db.Column(db.String(20), nullable=True)
