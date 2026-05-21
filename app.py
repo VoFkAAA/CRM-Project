@@ -10,7 +10,6 @@ from models import db, User
 from routes.clients import client_bp
 from routes.users import user_bp
 
-
 app = Flask(__name__)
 app.logger.setLevel(logging.INFO)
 app.config.from_object(Config)
@@ -46,7 +45,6 @@ def invalid_token_callback(error):
     return jsonify({"success": False, "message": "Неверный токен"}), 422
 
 
-# Swagger конфигурация
 swagger_config = {
     "headers": [],
     "specs": [
@@ -60,6 +58,11 @@ swagger_config = {
     "static_url_path": "/flasgger_static",
     "swagger_ui": True,
     "specs_route": "/api/docs",
+    "swagger_ui_config": {
+        "apisSorter": "alpha",  # сортировка по алфавиту
+        "operationsSorter": "method",  # сортировка операций внутри тега
+        "docExpansion": "list",  # раскрыть все теги
+    },
 }
 
 SWAGGER_TEMPLATE = {
@@ -69,6 +72,11 @@ SWAGGER_TEMPLATE = {
         "description": "API для управления клиентами и пользователями",
         "version": "1.0.0",
     },
+    "tags": [
+        {"name": "Authentication", "description": "Аутентификация"},
+        {"name": "User Profile", "description": "Профиль пользователя"},
+        {"name": "Clients", "description": "Управление клиентами"},
+    ],
     "securityDefinitions": {
         "Bearer": {
             "type": "apiKey",

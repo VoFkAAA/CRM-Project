@@ -1,3 +1,4 @@
+import re
 from flask import Blueprint, request, Response, jsonify
 from flask_jwt_extended import (
     jwt_required,
@@ -47,6 +48,35 @@ def get_clients():
 @client_bp.route("/create_client", methods=["POST"])
 @jwt_required()
 def create():
+    """Создание нового клиента
+    ---
+    tags:
+      - Clients
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            client_name:
+              type: string
+            email:
+              type: string
+            phone:
+              type: string
+            address:
+              type: string
+            status:
+              type: string
+              enum: [Active, Stopped, Blocked]
+    responses:
+      201:
+        description: Client created successfully
+      400:
+        description: Validation error
+    """
+
     data = request.get_json()
 
     client_name = data.get("client_name")
@@ -203,7 +233,15 @@ def update_client(client_id: int) -> Response:
     try:
         client.client_name = data.get("client_name")
         client.email = data.get("email")
-        client.phone = data.get("phone") if data.get("phone") else None
+
+        # Очищаем телефон от нецифр, и если результат пустой — сохраняем None
+        raw_phone = data.get("phone")
+        if raw_phone:
+            phone_clean = re.sub(r"\D", "", raw_phone)
+            client.phone = phone_clean if phone_clean else None
+        else:
+            client.phone = None
+
         client.address = data.get("address")
         client.status = data.get("status")
 
@@ -211,7 +249,6 @@ def update_client(client_id: int) -> Response:
         return jsonify(client.to_dict()), 200
     except IntegrityError as err:
         db.session.rollback()
-        # Handle the duplicate, e.g., return an error message to the user
         return (
             jsonify(
                 {

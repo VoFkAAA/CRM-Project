@@ -219,10 +219,35 @@ def login():
     )
 
 
-@user_bp.route("/update_profile", methods=["GET", "PUT", "PATCH"])
+@user_bp.route("/update_profile", methods=["GET"])
 @jwt_required()
-def update_profile():
-    """Обновление профиля пользователя
+def get_profile():
+    """Получение профиля пользователя
+    ---
+    tags:
+      - User Profile
+    parameters:
+      - in: header
+        name: Authorization
+        type: string
+        required: true
+    responses:
+      200:
+        description: Profile retrieved successfully
+      404:
+        description: User not found
+    """
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"success": False, "message": "Пользователь не найден"}), 404
+    return jsonify({"success": True, "data": user.to_dict()}), 200
+
+
+@user_bp.route("/update_profile", methods=["PUT"])
+@jwt_required()
+def update_profile_full():
+    """Полное обновление профиля пользователя
     ---
     tags:
       - User Profile
@@ -233,6 +258,7 @@ def update_profile():
         required: true
       - in: body
         name: body
+        required: true
         schema:
           type: object
           properties:
@@ -261,13 +287,8 @@ def update_profile():
     """
     user_id = get_jwt_identity()
     user = User.query.get(user_id)
-
     if not user:
         return jsonify({"success": False, "message": "Пользователь не найден"}), 404
-
-    # GET запрос для получения профиля
-    if request.method == "GET":
-        return jsonify({"success": True, "data": user.to_dict()}), 200
 
     data = request.get_json()
 
@@ -287,12 +308,10 @@ def update_profile():
         valid_email, msg = validate_email(data["email"])
         if not valid_email:
             return jsonify({"success": False, "message": msg}), 400
-        # Проверка уникальности email (БАГ: при попытке сменить email на уже существующий у другого пользователя возвращает 200 OK)
         existing = User.query.filter(
             User.email == data["email"], User.user_id != user_id
         ).first()
         if existing:
-            # БАГ: Возвращаем 200 вместо 409
             return (
                 jsonify(
                     {
@@ -309,17 +328,6 @@ def update_profile():
         if len(phone_clean) == 11 and phone_clean.startswith(("7", "8")):
             phone_clean = phone_clean[1:]
         if len(phone_clean) != 10:
-            # БАГ: PATCH возвращает 403 вместо 400
-            if request.method == "PATCH":
-                return (
-                    jsonify(
-                        {
-                            "success": False,
-                            "message": "Телефон должен содержать 10 цифр",
-                        }
-                    ),
-                    403,
-                )
             return (
                 jsonify(
                     {"success": False, "message": "Телефон должен содержать 10 цифр"}
@@ -346,7 +354,128 @@ def update_profile():
             user.department = data["department"]
 
     db.session.commit()
+    return (
+        jsonify(
+            {
+                "success": True,
+                "message": "Профиль успешно обновлён",
+                "data": user.to_dict(),
+            }
+        ),
+        200,
+    )
 
+
+@user_bp.route("/update_profile", methods=["PATCH"])
+@jwt_required()
+def update_profile_partial():
+    """Частичное обновление профиля пользователя
+    ---
+    tags:
+      - User Profile
+    parameters:
+      - in: header
+        name: Authorization
+        type: string
+        required: true
+      - in: body
+        name: body
+        required: false
+        schema:
+          type: object
+          properties:
+            name:
+              type: string
+            surname:
+              type: string
+            email:
+              type: string
+            phone:
+              type: string
+            birth_date:
+              type: string
+              format: date
+            department:
+              type: string
+    responses:
+      200:
+        description: Profile updated successfully
+      400:
+        description: Validation error
+      404:
+        description: User not found
+      409:
+        description: Email or phone already exists
+    """
+    user_id = get_jwt_identity()
+    user = User.query.get(user_id)
+    if not user:
+        return jsonify({"success": False, "message": "Пользователь не найден"}), 404
+
+    data = request.get_json()
+
+    if "name" in data:
+        valid, msg = validate_name(data["name"], "Имя")
+        if not valid:
+            return jsonify({"success": False, "message": msg}), 400
+        user.name = data["name"]
+
+    if "surname" in data:
+        valid, msg = validate_name(data["surname"], "Фамилия")
+        if not valid:
+            return jsonify({"success": False, "message": msg}), 400
+        user.surname = data["surname"]
+
+    if "email" in data:
+        valid_email, msg = validate_email(data["email"])
+        if not valid_email:
+            return jsonify({"success": False, "message": msg}), 400
+        existing = User.query.filter(
+            User.email == data["email"], User.user_id != user_id
+        ).first()
+        if existing:
+            return (
+                jsonify(
+                    {
+                        "success": True,
+                        "message": "Профиль обновлён (email уже существует)",
+                    }
+                ),
+                200,
+            )
+        user.email = data["email"]
+
+    if "phone" in data:
+        phone_clean = re.sub(r"\D", "", data["phone"])
+        if len(phone_clean) == 11 and phone_clean.startswith(("7", "8")):
+            phone_clean = phone_clean[1:]
+        if len(phone_clean) != 10:
+            return (
+                jsonify(
+                    {"success": False, "message": "Телефон должен содержать 10 цифр"}
+                ),
+                403,
+            )
+        existing = User.query.filter(
+            User.phone == phone_clean, User.user_id != user_id
+        ).first()
+        if existing:
+            return jsonify({"success": False, "message": "Телефон уже существует"}), 409
+        user.phone = phone_clean
+
+    if "birth_date" in data and data["birth_date"]:
+        try:
+            user.birth_date = datetime.strptime(data["birth_date"], "%Y-%m-%d").date()
+        except ValueError:
+            pass
+
+    if "department" in data and data["department"]:
+        from models import DepartmentEnum
+
+        if data["department"] in [e.value for e in DepartmentEnum]:
+            user.department = data["department"]
+
+    db.session.commit()
     return (
         jsonify(
             {
