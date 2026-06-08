@@ -57,7 +57,7 @@ swagger_config = {
     ],
     "static_url_path": "/flasgger_static",
     "swagger_ui": True,
-    "specs_route": "/api/docs",
+    "specs_route": "/swagger",   # вместо "/api/docs",
     "swagger_ui_config": {
         "apisSorter": "alpha",  # сортировка по алфавиту
         "operationsSorter": "method",  # сортировка операций внутри тега
